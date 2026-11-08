@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>คอมมิชชั่นรับทำภาพขยับ (2D Motion)</title>
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome สำหรับไอคอน -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #FDFBF7; /* สีครีมนวลอ่อนๆ ตามเรฟ */
+            --primary-color: #82A38D; /* สีเขียวพาสเทลจากเรฟ */
+            --primary-hover: #6E8E79;
+            --text-color: #2C3E35;
+            --card-bg: #FFFFFF;
+            --accent-color: #E8EDE9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Prompt', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            text-align: center;
+            padding: 20px 15px;
+        }
+
+        /* ส่วนหัวข้อหลัก แก้ไขการตัดบรรทัดและระยะห่างไม่ให้ติดกัน */
+        header {
+            margin-bottom: 22px;
+        }
+
+        header h1 {
+            font-size: 1.45rem;
+            font-weight: 600;
+            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        header h2 {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--primary-hover);
+            line-height: 1.4;
+        }
+
+        /* แท็กหมวดหมู่ */
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 22px;
+        }
+
+        .tag {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 300;
+        }
+
+        /* การ์ดแสดงสถานะ (ดึงจาก Sheet) */
+        .status-card {
+            background-color: var(--card-bg);
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(130, 163, 141, 0.08);
+            margin-bottom: 18px;
+            text-align: left;
+            border: 1px solid rgba(130, 163, 141, 0.2);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f2f5f3;
+        }
+
+        .status-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-weight: 400;
+            color: #555;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.92rem;
+        }
+
+        .highlight-status {
+            background-color: var(--accent-color);
+            padding: 3px 10px;
+            border-radius: 6px;
+            color: var(--primary-hover);
+            font-size: 0.88rem;
+        }
+
+        /* กล่องประกาศ */
+        .announcement-box {
+            background-color: #FFF9E6;
+            border-left: 4px solid #FFD166;
+            padding: 14px;
+            border-radius: 8px;
+            text-align: left;
+            margin-bottom: 22px;
+            font-size: 0.88rem;
+            color: #4a4a4a;
+            line-height: 1.5;
+        }
+
+        .announcement-title {
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: #b28900;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ปุ่มติดต่อหลัก (Facebook) */
+        .btn-contact {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(130, 163, 141, 0.25);
+            transition: background-color 0.2s, transform 0.1s;
+            margin-bottom: 14px;
+        }
+
+        .btn-contact:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-contact:active {
+            transform: scale(0.98);
+        }
+
+        /* แถบลิงก์เล็กๆ ด้านล่าง (TikTok / YouTube) */
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.78rem;
+            padding: 5px 10px;
+            border-radius: 6px;
+            background-color: rgba(0,0,0,0.03);
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .social-btn:hover {
+            color: var(--text-color);
+            background-color: rgba(0,0,0,0.06);
+        }
+
+        footer {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- ส่วนหัวข้อหลัก -->
+        <header>
+            <h1>คอมมิชชั่นรับทำภาพขยับ</h1>
+            <h2>(2D Motion)</h2>
+        </header>
+
+        <!-- แท็กหมวดหมู่ -->
+        <div class="tags-container">
+            <span class="tag">รูปวาดการ์ตูน</span>
+            <span class="tag">อนิเมะคาแรคเตอร์</span>
+            <span class="tag">ปกนิยาย</span>
+            <span class="tag">การ์ตูนจิบิ</span>
+            <span class="tag">ภาพประกอบทั่วไป</span>
+        </div>
+
+        <!-- กล่องแสดงสถานะดึงจาก Google Sheet แบบ Real-time -->
+        <div class="status-card">
+            <div class="status-item">
+                <span class="status-label"><i class="fa-solid fa-circle-dot" style="color: var(--primary-color);"></i> สถานะรับงาน</span>
+                <span class="status-value" id="status-work"><span class="highlight-status">กำลังโหลด...</span></span>
+            </div>
+            <div class="status-item">
+                <span class="status-label"><i class="fa-solid fa-users"></i> จำนวนคิวปัจจุบัน</span>
+                <span class="status-value" id="queue-count">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label"><i class="fa-solid fa-calendar-days"></i> วันที่เปิดรับคิวรอบถัดไป</span>
+                <span class="status-value" id="next-date">-</span>
+            </div>
+        </div>
+
+        <!-- กล่องประกาศ -->
+        <div class="announcement-box">
+            <div class="announcement-title"><i class="fa-solid fa-bullhorn"></i> ประกาศ / หมายเหตุถึงลูกค้า</div>
+            <div id="announcement-text">กำลังโหลดประกาศ...</div>
+        </div>
+
+        <!-- ปุ่มติดต่อหลัก (Facebook ของคุณ) -->
+        <a href="https://www.facebook.com/share/1HzgpVKDj2/" target="_blank" class="btn-contact">
+            <i class="fa-brands fa-facebook"></i> ติดต่อสอบถาม / คุยรายละเอียด
+        </a>
+
+        <!-- แถบเล็กๆ TikTok และ YouTube ของคุณ -->
+        <div class="social-links">
+            <a href="https://tiktok.com/@sg.kunkun" target="_blank" class="social-btn">
+                <i class="fa-brands fa-tiktok"></i> TikTok ตัวอย่างงาน
+            </a>
+            <a href="https://www.youtube.com/@work.Bunpra" target="_blank" class="social-btn">
+                <i class="fa-brands fa-youtube"></i> YouTube ผลงาน
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        © Commission Status Page - Realtime Updated
+    </footer>
+
+    <!-- Script สำหรับดึงข้อมูลจาก Google Sheets แบบอัตโนมัติ -->
+    <script>
+        const SHEET_ID = '1lNvaIJzhUOSsqTBgoh9eo4HErs5x5VRsSKRwPPxEZ14';
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+
+        async function fetchSheetData() {
+            try {
+                const response = await fetch(CSV_URL);
+                const data = await response.text();
+                const rows = parseCSV(data);
+                
+                if (rows.length > 0) {
+                    const statusWork = rows[0][0] || 'ไม่ระบุ';
+                    const queueCount = rows[0][1] || '0';
+                    const nextDate = rows[0][2] || '-';
+                    const announcement = rows[0][3] || 'ไม่มีประกาศในขณะนี้';
+
+                    document.getElementById('status-work').innerHTML = `<span class="highlight-status">${statusWork}</span>`;
+                    document.getElementById('queue-count').innerText = queueCount + ' คิว';
+                    document.getElementById('next-date').innerText = nextDate;
+                    document.getElementById('announcement-text').innerText = announcement;
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('announcement-text').innerText = 'ไม่สามารถโหลดข้อมูลประกาศได้ในขณะนี้';
+            }
+        }
+
+        function parseCSV(str) {
+            const arr = [];
+            let row = [];
+            let inQuotes = false;
+            let field = '';
+            
+            for (let i = 0; i < str.length; i++) {
+                let c = str[i], next = str[i+1];
+                if (c === '"' && inQuotes && next === '"') { field += '"'; i++; continue; }
+                if (c === '"') { inQuotes = !inQuotes; continue; }
+                if (c === ',' && !inQuotes) { row.push(field); field = ''; continue; }
+                if ((c === '\r' && next === '\n') || (c === '\n' && !inQuotes)) {
+                    row.push(field); arr.push(row); row = []; field = '';
+                    if (c === '\r') i++;
+                    continue;
+                }
+                field += c;
+            }
+            if (field || row.length > 0) { row.push(field); arr.push(row); }
+            return arr.slice(1);
+        }
+
+        fetchSheetData();
+        setInterval(fetchSheetData, 30000); // รีเฟรชข้อมูลอัตโนมัติทุกๆ 30 วินาที
+    </script>
+</body>
+</html>
